@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⛵ Boat Design Challenge Scoreboard</title>
+    <style>
+        :root {
+  /* Primitive Color Tokens */
+  --color-white: rgba(255, 255, 255, 1);
+  --color-black: rgba(0, 0, 0, 1);
+  --color-cream-50: rgba(252, 252, 249, 1);
+  --color-cream-100: rgba(255, 255, 253, 1);
+  --color-gray-200: rgba(245, 245, 245, 1);
+  --color-gray-300: rgba(167, 169, 169, 1);
+  --color-gray-400: rgba(119, 124, 124, 1);
+  --color-slate-500: rgba(98, 108, 113, 1);
+  --color-brown-600: rgba(94, 82, 64, 1);
+  --color-charcoal-700: rgba(31, 33, 33, 1);
+  --color-charcoal-800: rgba(38, 40, 40, 1);
+  --color-slate-900: rgba(19, 52, 59, 1);
+  --color-teal-300: rgba(50, 184, 198, 1);
+  --color-teal-400: rgba(45, 166, 178, 1);
+  --color-teal-500: rgba(33, 128, 141, 1);
+  --color-teal-600: rgba(29, 116, 128, 1);
+  --color-teal-700: rgba(26, 104, 115, 1);
+  --color-teal-800: rgba(41, 150, 161, 1);
+  --color-red-400: rgba(255, 84, 89, 1);
+  --color-red-500: rgba(192, 21, 47, 1);
+  --color-orange-400: rgba(230, 129, 97, 1);
+  --color-orange-500: rgba(168, 75, 47, 1);
+
+  /* RGB versions for opacity control */
+  --color-brown-600-rgb: 94, 82, 64;
+  --color-teal-500-rgb: 33, 128, 141;
+  --color-slate-900-rgb: 19, 52, 59;
+  --color-slate-500-rgb: 98, 108, 113;
+  --color-red-500-rgb: 192, 21, 47;
+  --color-red-400-rgb: 255, 84, 89;
+  --color-orange-500-rgb: 168, 75, 47;
+  --color-orange-400-rgb: 230, 129, 97;
+
+  /* Background color tokens (Light Mode) */
+  --color-bg-1: rgba(59, 130, 246, 0.08);
+  --color-bg-2: rgba(245, 158, 11, 0.08);
+  --color-bg-3: rgba(34, 197, 94, 0.08);
+  --color-bg-4: rgba(239, 68, 68, 0.08);
+  --color-bg-5: rgba(147, 51, 234, 0.08);
+  --color-bg-6: rgba(249, 115, 22, 0.08);
+  --color-bg-7: rgba(236, 72, 153, 0.08);
+  --color-bg-8: rgba(6, 182, 212, 0.08);
+
+  /* Semantic Color Tokens (Light Mode) */
+  --color-background: var(--color-cream-50);
+  --color-surface: var(--color-cream-100);
+  --color-text: var(--color-slate-900);
+  --color-text-secondary: var(--color-slate-500);
+  --color-primary: var(--color-teal-500);
+  --color-primary-hover: var(--color-teal-600);
+  --color-primary-active: var(--color-teal-700);
+  --color-secondary: rgba(var(--color-brown-600-rgb), 0.12);
+  --color-secondary-hover: rgba(var(--color-brown-600-rgb), 0.2);
+  --color-secondary-active: rgba(var(--color-brown-600-rgb), 0.25);
+  --color-border: rgba(var(--color-brown-600-rgb), 0.2);
+  --color-btn-primary-text: var(--color-cream-50);
+  --color-card-border: rgba(var(--color-brown-600-rgb), 0.12);
+  --color-card-border-inner: rgba(var(--color-brown-600-rgb), 0.12);
+  --color-error: var(--color-red-500);
+  --color-success: var(--color-teal-500);
+  --color-warning: var(--color-orange-500);
+  --color-info: var(--color-slate-500);
+  --color-focus-ring: rgba(var(--color-teal-500-rgb), 0.4);
+  --color-select-caret: rgba(var(--color-slate-900-rgb), 0.8);
+
+  /* Common style patterns */
+  --focus-ring: 0 0 0 3px var(--color-focus-ring);
+  --focus-outline: 2px solid var(--color-primary);
+  --status-bg-opacity: 0.15;
+  --status-border-opacity: 0.25;
+
+  /* Typography */
+  --font-family-base: "FKGroteskNeue", "Geist", "Inter", -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-family-mono: "Berkeley Mono", ui-monospace, SFMono-Regular, Menlo,
+    Monaco, Consolas, monospace;
+  --font-size-xs: 11px;
+  --font-size-sm: 12px;
+  --font-size-base: 14px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 18px;
+  --font-size-2xl: 20px;
+  --font-size-3xl: 24px;
+  --font-size-4xl: 30px;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 550;
+  --font-weight-bold: 600;
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --letter-spacing-tight: -0.01em;
+
+  /* Spacing */
+  --space-0: 0;
+  --space-1: 1px;
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-6: 6px;
+  --space-8: 8px;
+  --space-10: 10px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
+
+  /* Border Radius */
+  --radius-sm: 6px;
+  --radius-base: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04),
+    0 2px 4px -1px rgba(0, 0, 0, 0.02);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.04),
+    0 4px 6px -2px rgba(0, 0, 0, 0.02);
+  --shadow-inset-sm: inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.03);
+
+  /* Animation */
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Custom colors for scoreboard */
+  --color-pass: #10b981;
+  --color-fail: #ef4444;
+  --color-gold: #fbbf24;
+  --color-silver: #9ca3af;
+  --color-bronze: #f97316;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-gray-400-rgb: 119, 124, 124;
+    --color-teal-300-rgb: 50, 184, 198;
+    --color-gray-300-rgb: 167, 169, 169;
+    --color-gray-200-rgb: 245, 245, 245;
+    --color-bg-1: rgba(29, 78, 216, 0.15);
+    --color-bg-2: rgba(180, 83, 9, 0.15);
+    --color-bg-3: rgba(21, 128, 61, 0.15);
+    --color-bg-4: rgba(185, 28, 28, 0.15);
+    --color-bg-5: rgba(107, 33, 168, 0.15);
+    --color-bg-6: rgba(194, 65, 12, 0.15);
+    --color-bg-7: rgba(190, 24, 93, 0.15);
+    --color-bg-8: rgba(8, 145, 178, 0.15);
+    --color-background: var(--color-charcoal-700);
+    --color-surface: var(--color-charcoal-800);
+    --color-text: var(--color-gray-200);
+    --color-text-secondary: rgba(var(--color-gray-300-rgb), 0.7);
+    --color-primary: var(--color-teal-300);
+    --color-primary-hover: var(--color-teal-400);
+    --color-primary-active: var(--color-teal-800);
+    --color-secondary: rgba(var(--color-gray-400-rgb), 0.15);
+    --color-secondary-hover: rgba(var(--color-gray-400-rgb), 0.25);
+    --color-secondary-active: rgba(var(--color-gray-400-rgb), 0.3);
+    --color-border: rgba(var(--color-gray-400-rgb), 0.3);
+    --color-error: var(--color-red-400);
+    --color-success: var(--color-teal-300);
+    --color-warning: var(--color-orange-400);
+    --color-info: var(--color-gray-300);
+    --color-focus-ring: rgba(var(--color-teal-300-rgb), 0.4);
+    --color-btn-primary-text: var(--color-slate-900);
+    --color-card-border: rgba(var(--color-gray-400-rgb), 0.2);
+    --color-card-border-inner: rgba(var(--color-gray-400-rgb), 0.15);
+    --shadow-inset-sm: inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+    --color-select-caret: rgba(var(--color-gray-200-rgb), 0.8);
+  }
+}
+
+@font-face {
+  font-family: 'FKGroteskNeue';
+  src: url('https://r2cdn.perplexity.ai/fonts/FKGroteskNeue.woff2')
+    format('woff2');
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family-base);
+    background-color: var(--color-background);
+    color: var(--color-text);
+    line-height: var(--line-height-normal);
+    padding: var(--space-16);
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+header {
+    text-align: center;
+    margin-bottom: var(--space-32);
+    padding: var(--space-24);
+    background: var(--color-bg-8);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-card-border);
+}
+
+header h1 {
+    font-size: var(--font-size-4xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
+    margin-bottom: var(--space-8);
+    letter-spacing: var(--letter-spacing-tight);
+}
+
+header p {
+    font-size: var(--font-size-lg);
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.add-teams-section {
+    background: var(--color-surface);
+    padding: var(--space-24);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-32);
+    border: 1px solid var(--color-card-border);
+    box-shadow: var(--shadow-sm);
+}
+
+.add-teams-section h2 {
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--space-16);
+    color: var(--color-text);
+    font-weight: var(--font-weight-semibold);
+}
+
+.bulk-add {
+    margin-bottom: var(--space-24);
+}
+
+.bulk-add label {
+    display: block;
+    font-weight: var(--font-weight-medium);
+    margin-bottom: var(--space-8);
+    color: var(--color-text);
+    font-size: var(--font-size-base);
+}
+
+.bulk-add textarea {
+    width: 100%;
+    padding: var(--space-12);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-base);
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-base);
+    background: var(--color-background);
+    color: var(--color-text);
+    resize: vertical;
+    min-height: 80px;
+    transition: border-color var(--duration-fast) var(--ease-standard);
+}
+
+.bulk-add textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: var(--focus-ring);
+}
+
+.single-add {
+    display: flex;
+    gap: var(--space-12);
+    align-items: flex-end;
+}
+
+.single-add div {
+    flex: 1;
+}
+
+.single-add label {
+    display: block;
+    font-weight: var(--font-weight-medium);
+    margin-bottom: var(--space-8);
+    color: var(--color-text);
+    font-size: var(--font-size-base);
+}
+
+.single-add input {
+    width: 100%;
+    padding: var(--space-10) var(--space-12);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-base);
+    font-size: var(--font-size-base);
+    background: var(--color-background);
+    color: var(--color-text);
+    transition: border-color var(--duration-fast) var(--ease-standard);
+}
+
+.single-add input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: var(--focus-ring);
+}
+
+button {
+    padding: var(--space-10) var(--space-20);
+    background: var(--color-primary);
+    color: var(--color-btn-primary-text);
+    border: none;
+    border-radius: var(--radius-base);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-standard);
+    font-family: var(--font-family-base);
+}
+
+button:hover {
+    background: var(--color-primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+button:active {
+    background: var(--color-primary-active);
+    transform: translateY(0);
+}
+
+button:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+}
+
+.scoreboard {
+    background: var(--color-surface);
+    padding: var(--space-24);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-card-border);
+    box-shadow: var(--shadow-sm);
+}
+
+.scoreboard h2 {
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--space-20);
+    color: var(--color-text);
+    font-weight: var(--font-weight-semibold);
+}
+
+.empty-state {
+    text-align: center;
+    padding: var(--space-32);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-lg);
+}
+
+.teams-table {
+    width: 100%;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-base);
+}
+
+thead {
+    background: var(--color-bg-1);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+thead th {
+    padding: var(--space-12) var(--space-8);
+    text-align: left;
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text);
+    border-bottom: 2px solid var(--color-border);
+    white-space: nowrap;
+}
+
+thead th:first-child {
+    text-align: center;
+    width: 60px;
+}
+
+tbody tr {
+    border-bottom: 1px solid var(--color-card-border-inner);
+    transition: background-color var(--duration-fast) var(--ease-standard);
+    animation: slideIn var(--duration-normal) var(--ease-standard);
+}
+
+tbody tr:hover {
+    background: var(--color-bg-1);
+}
+
+tbody tr.rank-1 {
+    background: rgba(251, 191, 36, 0.1);
+}
+
+tbody tr.rank-1:hover {
+    background: rgba(251, 191, 36, 0.15);
+}
+
+tbody td {
+    padding: var(--space-12) var(--space-8);
+    vertical-align: middle;
+}
+
+.rank-cell {
+    text-align: center;
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-xl);
+    color: var(--color-text);
+}
+
+.rank-cell.rank-1 {
+    color: var(--color-gold);
+    font-size: var(--font-size-2xl);
+}
+
+.rank-cell.rank-2 {
+    color: var(--color-silver);
+}
+
+.rank-cell.rank-3 {
+    color: var(--color-bronze);
+}
+
+.team-name-cell {
+    font-weight: var(--font-weight-medium);
+    min-width: 150px;
+}
+
+.team-name-display {
+    cursor: pointer;
+    padding: var(--space-6) var(--space-8);
+    border-radius: var(--radius-sm);
+    transition: background-color var(--duration-fast) var(--ease-standard);
+    display: inline-block;
+}
+
+.team-name-display:hover {
+    background: var(--color-secondary);
+}
+
+.team-name-edit {
+    display: flex;
+    gap: var(--space-6);
+    align-items: center;
+}
+
+.team-name-edit input {
+    padding: var(--space-6) var(--space-8);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-base);
+    background: var(--color-background);
+    color: var(--color-text);
+    flex: 1;
+}
+
+.team-name-edit button {
+    padding: var(--space-6) var(--space-10);
+    font-size: var(--font-size-sm);
+}
+
+.team-name-edit .btn-cancel {
+    background: var(--color-secondary);
+    color: var(--color-text);
+}
+
+.team-name-edit .btn-cancel:hover {
+    background: var(--color-secondary-hover);
+}
+
+.challenge-cell {
+    text-align: center;
+}
+
+.toggle-btn {
+    padding: var(--space-6) var(--space-16);
+    border-radius: var(--radius-full);
+    font-weight: var(--font-weight-medium);
+    font-size: var(--font-size-sm);
+    min-width: 80px;
+    border: 2px solid transparent;
+}
+
+.toggle-btn.pass {
+    background: var(--color-pass);
+    color: white;
+}
+
+.toggle-btn.pass:hover {
+    background: #059669;
+}
+
+.toggle-btn.fail {
+    background: var(--color-fail);
+    color: white;
+}
+
+.toggle-btn.fail:hover {
+    background: #dc2626;
+}
+
+.weight-input {
+    width: 100px;
+    padding: var(--space-6) var(--space-8);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-base);
+    text-align: center;
+    background: var(--color-background);
+    color: var(--color-text);
+}
+
+.weight-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: var(--focus-ring);
+}
+
+.score-cell {
+    text-align: center;
+    font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-lg);
+    color: var(--color-primary);
+}
+
+.delete-btn {
+    background: var(--color-error);
+    padding: var(--space-6) var(--space-12);
+    font-size: var(--font-size-sm);
+}
+
+.delete-btn:hover {
+    background: #b91c1c;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.notification {
+    position: fixed;
+    top: var(--space-20);
+    right: var(--space-20);
+    background: var(--color-success);
+    color: white;
+    padding: var(--space-16) var(--space-24);
+    border-radius: var(--radius-base);
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    animation: slideInRight var(--duration-normal) var(--ease-standard);
+}
+
+.notification.error {
+    background: var(--color-error);
+}
+
+.header-controls {
+    display: flex;
+    gap: var(--space-12);
+    justify-content: center;
+    align-items: center;
+    margin-top: var(--space-16);
+    flex-wrap: wrap;
+}
+
+.btn-toggle {
+    background: var(--color-secondary);
+    color: var(--color-text);
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+}
+
+.btn-toggle:hover {
+    background: var(--color-secondary-hover);
+}
+
+.btn-export {
+    background: var(--color-primary);
+    color: var(--color-btn-primary-text);
+}
+
+.btn-export:hover {
+    background: var(--color-primary-hover);
+}
+
+.btn-reset {
+    background: var(--color-warning);
+    color: white;
+}
+
+.btn-reset:hover {
+    background: var(--color-orange-500);
+    transform: translateY(-1px);
+}
+
+.add-teams-section {
+    transition: all var(--duration-normal) var(--ease-standard);
+    overflow: hidden;
+}
+
+.add-teams-section.hidden {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    opacity: 0;
+    border: none;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    animation: fadeIn var(--duration-fast) var(--ease-standard);
+}
+
+.modal {
+    background: var(--color-surface);
+    padding: var(--space-32);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-card-border);
+    box-shadow: var(--shadow-lg);
+    max-width: 500px;
+    width: 90%;
+    animation: scaleIn var(--duration-normal) var(--ease-standard);
+}
+
+.modal h3 {
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--space-16);
+    color: var(--color-text);
+}
+
+.modal p {
+    font-size: var(--font-size-base);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-24);
+}
+
+.modal-buttons {
+    display: flex;
+    gap: var(--space-12);
+    justify-content: flex-end;
+}
+
+.modal-buttons button {
+    min-width: 100px;
+}
+
+.btn-cancel-modal {
+    background: var(--color-secondary);
+    color: var(--color-text);
+}
+
+.btn-cancel-modal:hover {
+    background: var(--color-secondary-hover);
+}
+
+.btn-confirm {
+    background: var(--color-error);
+    color: white;
+}
+
+.btn-confirm:hover {
+    background: #b91c1c;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: var(--space-8);
+    }
+
+    header h1 {
+        font-size: var(--font-size-3xl);
+    }
+
+    .single-add {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .teams-table {
+        overflow-x: scroll;
+    }
+
+    table {
+        font-size: var(--font-size-sm);
+    }
+
+    .toggle-btn {
+        min-width: 60px;
+        font-size: var(--font-size-xs);
+        padding: var(--space-4) var(--space-8);
+    }
+
+    .weight-input {
+        width: 80px;
+    }
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⛵ Boat Design Challenge 🚤</h1>
+            <p>Live Scoreboard &amp; Team Tracker</p>
+            <div class="header-controls">
+                <button class="btn-toggle" onclick="toggleAddSection()" title="Show/Hide Add Team Section">
+                    <span id="toggleIcon">▼</span> <span id="toggleText">Hide Add Team</span>
+                </button>
+                <button class="btn-export" onclick="exportResults()" title="Export results to CSV">
+                    📥 Export CSV
+                </button>
+                <button class="btn-reset" onclick="resetAll()" title="Delete all data">
+                    🗑️ Reset All
+                </button>
+            </div>
+        </header>
+
+        <div class="add-teams-section" id="addTeamsSection">
+            <h2>➕ Add Teams</h2>
+            
+            <div class="bulk-add">
+                <label for="bulkTeams">Add Multiple Teams (comma or newline separated):</label>
+                <textarea id="bulkTeams" placeholder="Team A, Team B, Team C\nor one team per line..."></textarea>
+                <button onclick="addBulkTeams()" style="margin-top: 8px;">Add Teams</button>
+            </div>
+
+            <div class="single-add">
+                <div>
+                    <label for="singleTeam">Or Add Single Team:</label>
+                    <input type="text" id="singleTeam" placeholder="Enter team name...">
+                </div>
+                <button onclick="addSingleTeam()">Add Team</button>
+            </div>
+        </div>
+
+        <div class="scoreboard">
+            <h2>🏆 Leaderboard</h2>
+            <div id="teamsContainer">
+                <div class="empty-state">
+                    💧 No teams added yet. Add teams above to get started! 💧
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Note: Data is stored in memory only (not localStorage)
+        // Export to CSV to save results permanently
+        
+        let teams = [];
+        let nextId = 1;
+        let editingTeamId = null;
+        let addSectionVisible = true;
+
+        // Initialize app - load from localStorage
+        function initApp() {
+            loadFromStorage();
+            renderLeaderboard();
+            updateAddSectionVisibility();
+        }
+
+        // Save to in-memory storage (no localStorage in sandboxed environment)
+        function saveToStorage() {
+            // Data persists in memory during the session
+            // Note: Data will be lost when page is refreshed or closed
+            window.boatChallengeData = {
+                teams: [...teams],
+                nextId: nextId,
+                addSectionVisible: addSectionVisible
+            };
+        }
+
+        // Load from in-memory storage
+        function loadFromStorage() {
+            // Try to load from memory storage
+            if (window.boatChallengeData) {
+                teams = window.boatChallengeData.teams || [];
+                nextId = window.boatChallengeData.nextId || 1;
+                addSectionVisible = window.boatChallengeData.addSectionVisible !== undefined 
+                    ? window.boatChallengeData.addSectionVisible 
+                    : true;
+            }
+        }
+
+        // Toggle Add Team section visibility
+        function toggleAddSection() {
+            addSectionVisible = !addSectionVisible;
+            updateAddSectionVisibility();
+            saveToStorage();
+        }
+
+        function updateAddSectionVisibility() {
+            const section = document.getElementById('addTeamsSection');
+            const icon = document.getElementById('toggleIcon');
+            const text = document.getElementById('toggleText');
+            
+            if (addSectionVisible) {
+                section.classList.remove('hidden');
+                icon.textContent = '▼';
+                text.textContent = 'Hide Add Team';
+            } else {
+                section.classList.add('hidden');
+                icon.textContent = '▶';
+                text.textContent = 'Show Add Team';
+            }
+        }
+
+        // Export results to CSV
+        function exportResults() {
+            if (teams.length === 0) {
+                showNotification('No teams to export', true);
+                return;
+            }
+
+            const sortedTeams = sortTeams();
+            
+            // Create CSV content
+            let csv = 'Rank,Team Name,Load,Wave Resistance,Wind Resistance,Score,Weight (g)\n';
+            
+            sortedTeams.forEach((team, index) => {
+                const rank = index + 1;
+                const score = calculateScore(team);
+                const load = team.load ? 'PASS' : 'FAIL';
+                const wave = team.waveResistance ? 'PASS' : 'FAIL';
+                const wind = team.windResistance ? 'PASS' : 'FAIL';
+                const name = team.name.replace(/"/g, '""'); // Escape quotes
+                
+                csv += `${rank},"${name}",${load},${wave},${wind},${score},${team.weight}\n`;
+            });
+
+            // Create download
+            const now = new Date();
+            const dateStr = now.getFullYear() + '-' + 
+                          String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                          String(now.getDate()).padStart(2, '0');
+            const timeStr = String(now.getHours()).padStart(2, '0') + '-' + 
+                          String(now.getMinutes()).padStart(2, '0');
+            const filename = `Boat_Challenge_Results_${dateStr}_${timeStr}.csv`;
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification('✅ Results exported!');
+        }
+
+        // Reset all data
+        function resetAll() {
+            showConfirmModal(
+                '⚠️ Reset All Data?',
+                'This will delete all teams and cannot be undone. Are you sure?',
+                () => {
+                    teams = [];
+                    nextId = 1;
+                    editingTeamId = null;
+                    saveToStorage();
+                    renderLeaderboard();
+                    showNotification('🗑️ All data has been reset');
+                }
+            );
+        }
+
+        // Show confirmation modal
+        function showConfirmModal(title, message, onConfirm) {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal">
+                    <h3>${title}</h3>
+                    <p>${message}</p>
+                    <div class="modal-buttons">
+                        <button class="btn-cancel-modal" onclick="closeModal()">Cancel</button>
+                        <button class="btn-confirm" onclick="confirmModal()">Confirm</button>
+                    </div>
+                </div>
+            `;
+            modal.id = 'confirmModal';
+            document.body.appendChild(modal);
+            
+            // Store callback
+            window.modalConfirmCallback = onConfirm;
+            
+            // Close on overlay click
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('confirmModal');
+            if (modal) {
+                modal.remove();
+            }
+            window.modalConfirmCallback = null;
+        }
+
+        function confirmModal() {
+            if (window.modalConfirmCallback) {
+                window.modalConfirmCallback();
+            }
+            closeModal();
+        }
+
+        function showNotification(message, isError = false) {
+            const notification = document.createElement('div');
+            notification.className = 'notification' + (isError ? ' error' : '');
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        function addBulkTeams() {
+            const textarea = document.getElementById('bulkTeams');
+            const input = textarea.value.trim();
+            
+            if (!input) {
+                showNotification('Please enter team names', true);
+                return;
+            }
+
+            const teamNames = input.split(/[,\n]+/).map(name => name.trim()).filter(name => name);
+            
+            if (teamNames.length === 0) {
+                showNotification('No valid team names found', true);
+                return;
+            }
+
+            let addedCount = 0;
+            let duplicateCount = 0;
+
+            teamNames.forEach(name => {
+                if (teams.some(t => t.name.toLowerCase() === name.toLowerCase())) {
+                    duplicateCount++;
+                } else {
+                    teams.push({
+                        id: nextId++,
+                        name: name,
+                        load: false,
+                        waveResistance: false,
+                        windResistance: false,
+                        weight: 0
+                    });
+                    addedCount++;
+                }
+            });
+
+            textarea.value = '';
+            
+            if (addedCount > 0) {
+                showNotification(`✅ Added ${addedCount} team${addedCount > 1 ? 's' : ''}!`);
+            }
+            if (duplicateCount > 0) {
+                showNotification(`⚠️ Skipped ${duplicateCount} duplicate team${duplicateCount > 1 ? 's' : ''}`, true);
+            }
+            
+            saveToStorage();
+            renderLeaderboard();
+        }
+
+        function addSingleTeam() {
+            const input = document.getElementById('singleTeam');
+            const name = input.value.trim();
+            
+            if (!name) {
+                showNotification('Please enter a team name', true);
+                return;
+            }
+
+            if (teams.some(t => t.name.toLowerCase() === name.toLowerCase())) {
+                showNotification('Team name already exists!', true);
+                return;
+            }
+
+            teams.push({
+                id: nextId++,
+                name: name,
+                load: false,
+                waveResistance: false,
+                windResistance: false,
+                weight: 0
+            });
+
+            input.value = '';
+            showNotification('✅ Team added!');
+            saveToStorage();
+            renderLeaderboard();
+        }
+
+        function deleteTeam(id) {
+            const team = teams.find(t => t.id === id);
+            if (!team) return;
+
+            if (confirm(`Are you sure you want to delete "${team.name}"?`)) {
+                teams = teams.filter(t => t.id !== id);
+                showNotification('🗑️ Team deleted');
+                saveToStorage();
+                renderLeaderboard();
+            }
+        }
+
+        function toggleChallenge(id, challenge) {
+            const team = teams.find(t => t.id === id);
+            if (team) {
+                team[challenge] = !team[challenge];
+                saveToStorage();
+                renderLeaderboard();
+            }
+        }
+
+        function updateWeight(id, value) {
+            const team = teams.find(t => t.id === id);
+            if (team) {
+                team.weight = parseFloat(value) || 0;
+                saveToStorage();
+                renderLeaderboard();
+            }
+        }
+
+        function startEditingName(id) {
+            editingTeamId = id;
+            renderLeaderboard();
+        }
+
+        function saveTeamName(id) {
+            const input = document.getElementById(`edit-name-${id}`);
+            const newName = input.value.trim();
+            
+            if (!newName) {
+                showNotification('Team name cannot be empty', true);
+                return;
+            }
+
+            if (teams.some(t => t.id !== id && t.name.toLowerCase() === newName.toLowerCase())) {
+                showNotification('Team name already exists!', true);
+                return;
+            }
+
+            const team = teams.find(t => t.id === id);
+            if (team) {
+                team.name = newName;
+                editingTeamId = null;
+                showNotification('✅ Team name updated');
+                saveToStorage();
+                renderLeaderboard();
+            }
+        }
+
+        function cancelEditingName() {
+            editingTeamId = null;
+            renderLeaderboard();
+        }
+
+        function calculateScore(team) {
+            return (team.load ? 1 : 0) + (team.waveResistance ? 1 : 0) + (team.windResistance ? 1 : 0);
+        }
+
+        function sortTeams() {
+            return [...teams].sort((a, b) => {
+                const scoreA = calculateScore(a);
+                const scoreB = calculateScore(b);
+                
+                if (scoreB !== scoreA) {
+                    return scoreB - scoreA;
+                }
+                
+                return a.weight - b.weight;
+            });
+        }
+
+        function renderLeaderboard() {
+            const container = document.getElementById('teamsContainer');
+            
+            if (teams.length === 0) {
+                container.innerHTML = '<div class="empty-state">💧 No teams added yet. Add teams above to get started! 💧</div>';
+                return;
+            }
+
+            const sortedTeams = sortTeams();
+            
+            let html = `
+                <div class="teams-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Team Name</th>
+                                <th>Load</th>
+                                <th>Wave Resistance</th>
+                                <th>Wind Resistance</th>
+                                <th>Weight (g)</th>
+                                <th>Score</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            sortedTeams.forEach((team, index) => {
+                const rank = index + 1;
+                const score = calculateScore(team);
+                const rankClass = `rank-${rank}`;
+                const rankEmoji = rank === 1 ? '🏆' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
+
+                html += `
+                    <tr class="${rank <= 3 ? rankClass : ''}">
+                        <td class="rank-cell ${rank <= 3 ? rankClass : ''}">${rankEmoji} ${rank}</td>
+                        <td class="team-name-cell">
+                            ${editingTeamId === team.id ? `
+                                <div class="team-name-edit">
+                                    <input type="text" id="edit-name-${team.id}" value="${team.name}" autofocus>
+                                    <button onclick="saveTeamName(${team.id})">Save</button>
+                                    <button class="btn-cancel" onclick="cancelEditingName()">Cancel</button>
+                                </div>
+                            ` : `
+                                <div class="team-name-display" onclick="startEditingName(${team.id})" title="Click to edit">
+                                    ${team.name}
+                                </div>
+                            `}
+                        </td>
+                        <td class="challenge-cell">
+                            <button class="toggle-btn ${team.load ? 'pass' : 'fail'}" 
+                                    onclick="toggleChallenge(${team.id}, 'load')">
+                                ${team.load ? '✓ PASS' : '✗ FAIL'}
+                            </button>
+                        </td>
+                        <td class="challenge-cell">
+                            <button class="toggle-btn ${team.waveResistance ? 'pass' : 'fail'}" 
+                                    onclick="toggleChallenge(${team.id}, 'waveResistance')">
+                                ${team.waveResistance ? '✓ PASS' : '✗ FAIL'}
+                            </button>
+                        </td>
+                        <td class="challenge-cell">
+                            <button class="toggle-btn ${team.windResistance ? 'pass' : 'fail'}" 
+                                    onclick="toggleChallenge(${team.id}, 'windResistance')">
+                                ${team.windResistance ? '✓ PASS' : '✗ FAIL'}
+                            </button>
+                        </td>
+                        <td class="challenge-cell">
+                            <input type="number" class="weight-input" value="${team.weight}" 
+                                   onchange="updateWeight(${team.id}, this.value)" 
+                                   min="0" step="0.1" placeholder="0">
+                        </td>
+                        <td class="score-cell">${score}</td>
+                        <td class="challenge-cell">
+                            <button class="delete-btn" onclick="deleteTeam(${team.id})">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            container.innerHTML = html;
+
+            if (editingTeamId) {
+                const input = document.getElementById(`edit-name-${editingTeamId}`);
+                if (input) {
+                    input.focus();
+                    input.select();
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            saveTeamName(editingTeamId);
+                        } else if (e.key === 'Escape') {
+                            cancelEditingName();
+                        }
+                    });
+                }
+            }
+        }
+
+        document.getElementById('singleTeam').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                addSingleTeam();
+            }
+        });
+
+        // Initialize app on load
+        initApp();
+    </script>
+</body>
+</html>
