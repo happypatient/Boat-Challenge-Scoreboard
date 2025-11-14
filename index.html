@@ -620,6 +620,24 @@ tbody td {
     transform: translateY(-1px);
 }
 
+.btn-backup {
+    background: var(--color-success);
+    color: white;
+}
+
+.btn-backup:hover {
+    background: #059669;
+}
+
+.btn-restore {
+    background: var(--color-info);
+    color: white;
+}
+
+.btn-restore:hover {
+    background: var(--color-slate-900);
+}
+
 .add-teams-section {
     transition: all var(--duration-normal) var(--ease-standard);
     overflow: hidden;
@@ -773,6 +791,13 @@ tbody td {
                 <button class="btn-toggle" onclick="toggleAddSection()" title="Show/Hide Add Team Section">
                     <span id="toggleIcon">▼</span> <span id="toggleText">Hide Add Team</span>
                 </button>
+                <button class="btn-backup" id="saveBackupBtn" onclick="saveBackup()" title="Download JSON backup file" style="display: none;">
+                    💾 Save Backup
+                </button>
+                <button class="btn-restore" onclick="triggerRestoreFile()" title="Restore from backup file">
+                    📂 Restore from Backup
+                </button>
+                <input type="file" id="restoreFileInput" accept=".json" style="display: none;" onchange="restoreFromBackup(event)">
                 <button class="btn-export" onclick="exportResults()" title="Export results to CSV">
                     📥 Export CSV
                 </button>
@@ -811,40 +836,39 @@ tbody td {
     </div>
 
     <script>
-        // Note: Data is stored in memory only (not localStorage)
-        // Export to CSV to save results permanently
+        // Storage implementation using in-memory storage (localStorage prohibited in sandbox)
+        const STORAGE_KEY = 'boatChallenge_teams';
         
         let teams = [];
         let nextId = 1;
         let editingTeamId = null;
         let addSectionVisible = true;
 
-        // Initialize app - load from localStorage
+        // Initialize app - load from storage
         function initApp() {
             loadFromStorage();
             renderLeaderboard();
             updateAddSectionVisibility();
+            updateBackupButtonVisibility();
         }
 
-        // Save to in-memory storage (no localStorage in sandboxed environment)
+        // Save to in-memory storage only. (localStorage/sessionStorage prohibited in sandboxed environment.)
         function saveToStorage() {
-            // Data persists in memory during the session
-            // Note: Data will be lost when page is refreshed or closed
             window.boatChallengeData = {
                 teams: [...teams],
                 nextId: nextId,
                 addSectionVisible: addSectionVisible
             };
+            updateBackupButtonVisibility();
         }
 
         // Load from in-memory storage
         function loadFromStorage() {
-            // Try to load from memory storage
             if (window.boatChallengeData) {
                 teams = window.boatChallengeData.teams || [];
                 nextId = window.boatChallengeData.nextId || 1;
-                addSectionVisible = window.boatChallengeData.addSectionVisible !== undefined 
-                    ? window.boatChallengeData.addSectionVisible 
+                addSectionVisible = window.boatChallengeData.addSectionVisible !== undefined
+                    ? window.boatChallengeData.addSectionVisible
                     : true;
             }
         }
@@ -870,6 +894,133 @@ tbody td {
                 icon.textContent = '▶';
                 text.textContent = 'Show Add Team';
             }
+        }
+
+        // Update backup button visibility based on whether data exists
+        function updateBackupButtonVisibility() {
+            const saveBackupBtn = document.getElementById('saveBackupBtn');
+            if (saveBackupBtn) {
+                saveBackupBtn.style.display = teams.length > 0 ? 'inline-flex' : 'none';
+            }
+        }
+
+        // Save backup - download JSON file with current data
+        function saveBackup() {
+            if (teams.length === 0) {
+                showNotification('No teams to backup', true);
+                return;
+            }
+
+            const now = new Date();
+            const timestamp = now.getFullYear() + '-' + 
+                            String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                            String(now.getDate()).padStart(2, '0') + ' ' +
+                            String(now.getHours()).padStart(2, '0') + ':' + 
+                            String(now.getMinutes()).padStart(2, '0');
+            
+            const backupData = {
+                teams: teams,
+                timestamp: timestamp
+            };
+
+            const json = JSON.stringify(backupData, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            
+            const dateStr = now.getFullYear() + '-' + 
+                          String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                          String(now.getDate()).padStart(2, '0');
+            const timeStr = String(now.getHours()).padStart(2, '0') + '-' + 
+                          String(now.getMinutes()).padStart(2, '0');
+            const filename = `boat_challenge_backup_${dateStr}_${timeStr}.json`;
+            
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            showNotification('💾 Backup saved!');
+        }
+
+        // Trigger file input for restore
+        function triggerRestoreFile() {
+            document.getElementById('restoreFileInput').click();
+        }
+
+        // Restore from backup file
+        function restoreFromBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const backupData = JSON.parse(e.target.result);
+                    
+                    // Validate backup format
+                    if (!backupData.teams || !Array.isArray(backupData.teams)) {
+                        showNotification('Invalid backup file. Please select a valid boat challenge backup.', true);
+                        event.target.value = ''; // Reset file input
+                        return;
+                    }
+
+                    // Validate team structure
+                    const isValid = backupData.teams.every(team => 
+                        team.hasOwnProperty('id') &&
+                        team.hasOwnProperty('name') &&
+                        team.hasOwnProperty('load') &&
+                        team.hasOwnProperty('waveResistance') &&
+                        team.hasOwnProperty('windResistance') &&
+                        team.hasOwnProperty('weight')
+                    );
+
+                    if (!isValid) {
+                        showNotification('Invalid backup file format. Missing required team data.', true);
+                        event.target.value = '';
+                        return;
+                    }
+
+                    const teamCount = backupData.teams.length;
+                    const timestampStr = backupData.timestamp ? ` from ${backupData.timestamp}` : '';
+                    
+                    // Show confirmation dialog
+                    showConfirmModal(
+                        '📂 Restore Backup?',
+                        `Restore ${teamCount} team${teamCount !== 1 ? 's' : ''}${timestampStr}? Current data will be replaced.`,
+                        () => {
+                            // Load the backup data
+                            teams = backupData.teams;
+                            nextId = Math.max(...teams.map(t => t.id), 0) + 1;
+                            
+                            saveToStorage();
+                            renderLeaderboard();
+                            
+                            showNotification(`✅ Restored ${teamCount} team${teamCount !== 1 ? 's' : ''} from backup!`);
+                            event.target.value = ''; // Reset file input
+                        },
+                        () => {
+                            // Cancel callback
+                            event.target.value = ''; // Reset file input
+                        }
+                    );
+
+                } catch (error) {
+                    showNotification('Invalid JSON file. Please select a valid backup file.', true);
+                    event.target.value = '';
+                }
+            };
+            
+            reader.onerror = function() {
+                showNotification('Error reading file. Please try again.', true);
+                event.target.value = '';
+            };
+            
+            reader.readAsText(file);
         }
 
         // Export results to CSV
@@ -935,7 +1086,7 @@ tbody td {
         }
 
         // Show confirmation modal
-        function showConfirmModal(title, message, onConfirm) {
+        function showConfirmModal(title, message, onConfirm, onCancel) {
             const modal = document.createElement('div');
             modal.className = 'modal-overlay';
             modal.innerHTML = `
@@ -951,8 +1102,9 @@ tbody td {
             modal.id = 'confirmModal';
             document.body.appendChild(modal);
             
-            // Store callback
+            // Store callbacks
             window.modalConfirmCallback = onConfirm;
+            window.modalCancelCallback = onCancel;
             
             // Close on overlay click
             modal.addEventListener('click', (e) => {
@@ -963,18 +1115,27 @@ tbody td {
         }
 
         function closeModal() {
+            if (window.modalCancelCallback) {
+                window.modalCancelCallback();
+            }
             const modal = document.getElementById('confirmModal');
             if (modal) {
                 modal.remove();
             }
             window.modalConfirmCallback = null;
+            window.modalCancelCallback = null;
         }
 
         function confirmModal() {
             if (window.modalConfirmCallback) {
                 window.modalConfirmCallback();
             }
-            closeModal();
+            const modal = document.getElementById('confirmModal');
+            if (modal) {
+                modal.remove();
+            }
+            window.modalConfirmCallback = null;
+            window.modalCancelCallback = null;
         }
 
         function showNotification(message, isError = false) {
@@ -1069,12 +1230,11 @@ tbody td {
             const team = teams.find(t => t.id === id);
             if (!team) return;
 
-            if (confirm(`Are you sure you want to delete "${team.name}"?`)) {
-                teams = teams.filter(t => t.id !== id);
-                showNotification('🗑️ Team deleted');
-                saveToStorage();
-                renderLeaderboard();
-            }
+            // No confirmation needed per requirements
+            teams = teams.filter(t => t.id !== id);
+            showNotification('🗑️ Team deleted');
+            saveToStorage();
+            renderLeaderboard();
         }
 
         function toggleChallenge(id, challenge) {
