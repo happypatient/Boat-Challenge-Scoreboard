@@ -385,7 +385,7 @@ thead {
 
 thead th {
     padding: var(--space-12) var(--space-8);
-    text-align: left;
+    text-align: center;
     font-weight: var(--font-weight-semibold);
     color: var(--color-text);
     border-bottom: 2px solid var(--color-border);
@@ -395,6 +395,10 @@ thead th {
 thead th:first-child {
     text-align: center;
     width: 60px;
+}
+
+thead th:nth-child(2) {
+    text-align: left;
 }
 
 tbody tr {
@@ -418,6 +422,7 @@ tbody tr.rank-1:hover {
 tbody td {
     padding: var(--space-12) var(--space-8);
     vertical-align: middle;
+    text-align: center;
 }
 
 .rank-cell {
@@ -443,6 +448,7 @@ tbody td {
 .team-name-cell {
     font-weight: var(--font-weight-medium);
     min-width: 150px;
+    text-align: left !important;
 }
 
 .team-name-display {
@@ -496,8 +502,17 @@ tbody td {
     border-radius: var(--radius-full);
     font-weight: var(--font-weight-medium);
     font-size: var(--font-size-sm);
-    min-width: 80px;
+    min-width: 90px;
     border: 2px solid transparent;
+}
+
+.toggle-btn.pending {
+    background: #FFC107;
+    color: #000;
+}
+
+.toggle-btn.pending:hover {
+    background: #FFB300;
 }
 
 .toggle-btn.pass {
@@ -544,12 +559,76 @@ tbody td {
 
 .delete-btn {
     background: var(--color-error);
-    padding: var(--space-6) var(--space-12);
+    padding: var(--space-8) var(--space-16);
     font-size: var(--font-size-sm);
+    width: 100px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .delete-btn:hover {
     background: #b91c1c;
+}
+
+.save-changes-btn {
+    background: var(--color-success);
+    padding: var(--space-8) var(--space-16);
+    font-size: var(--font-size-sm);
+    width: 100px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.save-changes-btn:hover {
+    background: #059669;
+}
+
+.save-changes-btn:disabled {
+    background: var(--color-secondary);
+    color: var(--color-text-secondary);
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Edit Mode Overlay System */
+.edit-mode-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 100;
+    animation: fadeIn var(--duration-normal) var(--ease-standard);
+}
+
+tbody tr.editing {
+    position: relative;
+    z-index: 101;
+    background: var(--color-surface);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    border: 2px solid var(--color-primary);
+}
+
+tbody tr.editing:hover {
+    background: var(--color-surface);
+}
+
+tbody tr.inactive {
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+tbody tr.inactive:hover {
+    background: transparent;
+}
+
+.actions-cell {
+    white-space: nowrap;
 }
 
 @keyframes slideIn {
@@ -812,7 +891,8 @@ tbody td {
             
             <div class="bulk-add">
                 <label for="bulkTeams">Add Multiple Teams (comma or newline separated):</label>
-                <textarea id="bulkTeams" placeholder="Team A, Team B, Team C\nor one team per line..."></textarea>
+                <textarea id="bulkTeams" placeholder="Team A, Team B, Team C
+or one team per line..."></textarea>
                 <button onclick="addBulkTeams()" style="margin-top: 8px;">Add Teams</button>
             </div>
 
@@ -836,13 +916,15 @@ tbody td {
     </div>
 
     <script>
-        // Storage implementation using in-memory storage (localStorage prohibited in sandbox)
+        // Storage implementation
         const STORAGE_KEY = 'boatChallenge_teams';
         
         let teams = [];
         let nextId = 1;
         let editingTeamId = null;
         let addSectionVisible = true;
+        let currentEditingTeamId = null; // Track which team is currently being edited
+        let currentDisplayOrder = []; // Track current sorted display order
 
         // Initialize app - load from storage
         function initApp() {
@@ -852,24 +934,47 @@ tbody td {
             updateBackupButtonVisibility();
         }
 
-        // Save to in-memory storage only. (localStorage/sessionStorage prohibited in sandboxed environment.)
+        // Storage using in-memory only (localStorage blocked in sandboxed environment)
+        const storage = {
+            save: function(key, data) {
+                window.boatChallengeData = data;
+                console.log('✅ Data saved to memory:', data.teams?.length || 0, 'teams');
+            },
+            load: function(key) {
+                if (window.boatChallengeData) {
+                    console.log('✅ Loaded from memory:', window.boatChallengeData.teams?.length || 0, 'teams');
+                    return window.boatChallengeData;
+                }
+                return null;
+            }
+        };
+
+        // Save to storage with error handling
         function saveToStorage() {
-            window.boatChallengeData = {
-                teams: [...teams],
+            const data = {
+                teams: teams,
                 nextId: nextId,
                 addSectionVisible: addSectionVisible
             };
+            storage.save(STORAGE_KEY, data);
             updateBackupButtonVisibility();
         }
 
-        // Load from in-memory storage
+        // Load from storage with error handling
         function loadFromStorage() {
-            if (window.boatChallengeData) {
-                teams = window.boatChallengeData.teams || [];
-                nextId = window.boatChallengeData.nextId || 1;
-                addSectionVisible = window.boatChallengeData.addSectionVisible !== undefined
-                    ? window.boatChallengeData.addSectionVisible
-                    : true;
+            const data = storage.load(STORAGE_KEY);
+            
+            if (data) {
+                teams = data.teams || [];
+                // Convert old boolean format to new three-state format
+                teams = teams.map(team => ({
+                    ...team,
+                    load: typeof team.load === 'boolean' ? (team.load ? 'pass' : 'pending') : (team.load || 'pending'),
+                    waveResistance: typeof team.waveResistance === 'boolean' ? (team.waveResistance ? 'pass' : 'pending') : (team.waveResistance || 'pending'),
+                    windResistance: typeof team.windResistance === 'boolean' ? (team.windResistance ? 'pass' : 'pending') : (team.windResistance || 'pending')
+                }));
+                nextId = data.nextId || 1;
+                addSectionVisible = data.addSectionVisible !== undefined ? data.addSectionVisible : true;
             }
         }
 
@@ -906,25 +1011,24 @@ tbody td {
 
         // Save backup - download JSON file with current data
         function saveBackup() {
+            console.log('saveBackup() called');
+            
             if (teams.length === 0) {
                 showNotification('No teams to backup', true);
                 return;
             }
 
             const now = new Date();
-            const timestamp = now.getFullYear() + '-' + 
-                            String(now.getMonth() + 1).padStart(2, '0') + '-' + 
-                            String(now.getDate()).padStart(2, '0') + ' ' +
-                            String(now.getHours()).padStart(2, '0') + ':' + 
-                            String(now.getMinutes()).padStart(2, '0');
+            const timestamp = now.toISOString();
             
             const backupData = {
                 teams: teams,
                 timestamp: timestamp
             };
 
-            const json = JSON.stringify(backupData, null, 2);
-            const blob = new Blob([json], { type: 'application/json' });
+            const jsonString = JSON.stringify(backupData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
             
             const dateStr = now.getFullYear() + '-' + 
                           String(now.getMonth() + 1).padStart(2, '0') + '-' + 
@@ -933,17 +1037,15 @@ tbody td {
                           String(now.getMinutes()).padStart(2, '0');
             const filename = `boat_challenge_backup_${dateStr}_${timeStr}.json`;
             
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            
-            link.setAttribute('href', url);
-            link.setAttribute('download', filename);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
             URL.revokeObjectURL(url);
             
+            console.log('Backup download triggered:', filename);
             showNotification('💾 Backup saved!');
         }
 
@@ -1025,6 +1127,8 @@ tbody td {
 
         // Export results to CSV
         function exportResults() {
+            console.log('exportResults() called');
+            
             if (teams.length === 0) {
                 showNotification('No teams to export', true);
                 return;
@@ -1032,18 +1136,17 @@ tbody td {
 
             const sortedTeams = sortTeams();
             
-            // Create CSV content
-            let csv = 'Rank,Team Name,Load,Wave Resistance,Wind Resistance,Score,Weight (g)\n';
+            // Create CSV content with exact format specified
+            let csv = 'Rank,Team Name,Load,Wave Resistance,Wind Resistance,Weight\n';
             
             sortedTeams.forEach((team, index) => {
                 const rank = index + 1;
-                const score = calculateScore(team);
-                const load = team.load ? 'PASS' : 'FAIL';
-                const wave = team.waveResistance ? 'PASS' : 'FAIL';
-                const wind = team.windResistance ? 'PASS' : 'FAIL';
+                const load = team.load.toUpperCase();
+                const wave = team.waveResistance.toUpperCase();
+                const wind = team.windResistance.toUpperCase();
                 const name = team.name.replace(/"/g, '""'); // Escape quotes
                 
-                csv += `${rank},"${name}",${load},${wave},${wind},${score},${team.weight}\n`;
+                csv += `${rank},"${name}",${load},${wave},${wind},${team.weight}\n`;
             });
 
             // Create download
@@ -1055,17 +1158,18 @@ tbody td {
                           String(now.getMinutes()).padStart(2, '0');
             const filename = `Boat_Challenge_Results_${dateStr}_${timeStr}.csv`;
             
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
+            const blob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             
-            link.setAttribute('href', url);
-            link.setAttribute('download', filename);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
             
+            console.log('CSV download triggered:', filename);
             showNotification('✅ Results exported!');
         }
 
@@ -1175,9 +1279,9 @@ tbody td {
                     teams.push({
                         id: nextId++,
                         name: name,
-                        load: false,
-                        waveResistance: false,
-                        windResistance: false,
+                        load: 'pending',
+                        waveResistance: 'pending',
+                        windResistance: 'pending',
                         weight: 0
                     });
                     addedCount++;
@@ -1214,9 +1318,9 @@ tbody td {
             teams.push({
                 id: nextId++,
                 name: name,
-                load: false,
-                waveResistance: false,
-                windResistance: false,
+                load: 'pending',
+                waveResistance: 'pending',
+                windResistance: 'pending',
                 weight: 0
             });
 
@@ -1230,34 +1334,135 @@ tbody td {
             const team = teams.find(t => t.id === id);
             if (!team) return;
 
-            // No confirmation needed per requirements
-            teams = teams.filter(t => t.id !== id);
-            showNotification('🗑️ Team deleted');
-            saveToStorage();
-            renderLeaderboard();
+            // Show confirmation dialog before deleting
+            showConfirmModal(
+                '⚠️ Delete Team',
+                `Are you sure you want to delete ${team.name}? This action cannot be undone.`,
+                () => {
+                    // Confirmed - delete the team
+                    teams = teams.filter(t => t.id !== id);
+                    if (currentEditingTeamId === id) {
+                        currentEditingTeamId = null;
+                    }
+                    showNotification('🗑️ Team deleted');
+                    saveToStorage();
+                    renderLeaderboard();
+                }
+            );
         }
 
         function toggleChallenge(id, challenge) {
+            // If another team is being edited, save it first
+            if (currentEditingTeamId !== null && currentEditingTeamId !== id) {
+                saveCurrentEditingTeam();
+            }
+            
             const team = teams.find(t => t.id === id);
             if (team) {
-                team[challenge] = !team[challenge];
-                saveToStorage();
-                renderLeaderboard();
+                // Enter edit mode for this team (first time)
+                if (currentEditingTeamId === null) {
+                    currentEditingTeamId = id;
+                    // Capture current sorted order before any edits
+                    currentDisplayOrder = sortTeams();
+                } else {
+                    currentEditingTeamId = id;
+                }
+                
+                // Cycle through: pending -> pass -> fail -> pending
+                const currentState = team[challenge];
+                if (currentState === 'pending') {
+                    team[challenge] = 'pass';
+                } else if (currentState === 'pass') {
+                    team[challenge] = 'fail';
+                } else if (currentState === 'fail') {
+                    team[challenge] = 'pending';
+                } else {
+                    // Fallback for any other state
+                    team[challenge] = 'pending';
+                }
+                renderLeaderboardNoSort();
             }
         }
 
         function updateWeight(id, value) {
+            // If another team is being edited, save it first
+            if (currentEditingTeamId !== null && currentEditingTeamId !== id) {
+                saveCurrentEditingTeam();
+            }
+            
             const team = teams.find(t => t.id === id);
             if (team) {
+                // Enter edit mode for this team (first time)
+                if (currentEditingTeamId === null) {
+                    currentEditingTeamId = id;
+                    // Capture current sorted order before any edits
+                    currentDisplayOrder = sortTeams();
+                } else {
+                    currentEditingTeamId = id;
+                }
+                
                 team.weight = parseFloat(value) || 0;
-                saveToStorage();
-                renderLeaderboard();
+                renderLeaderboardNoSort();
             }
         }
 
-        function startEditingName(id) {
-            editingTeamId = id;
+        function saveTeamChanges(id, event) {
+            // Prevent default to stop blur from interfering
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
+            // Capture weight value directly from input before any blur events
+            const team = teams.find(t => t.id === id);
+            if (team) {
+                const weightInput = document.querySelector(`tr.editing .weight-input`);
+                if (weightInput) {
+                    team.weight = parseFloat(weightInput.value) || 0;
+                }
+            }
+            
+            currentEditingTeamId = null;
+            currentDisplayOrder = []; // Clear display order so next render will re-sort
+            saveToStorage();
             renderLeaderboard();
+            showNotification('✅ Changes saved!');
+        }
+        
+        function saveCurrentEditingTeam() {
+            if (currentEditingTeamId !== null) {
+                saveToStorage();
+                currentEditingTeamId = null;
+                currentDisplayOrder = []; // Clear display order so next render will re-sort
+                renderLeaderboard();
+            }
+        }
+        
+        function handleOverlayClick() {
+            if (currentEditingTeamId !== null) {
+                saveCurrentEditingTeam();
+                showNotification('✅ Changes auto-saved!');
+            }
+        }
+
+
+
+        function startEditingName(id) {
+            // If another team is being edited, save it first
+            if (currentEditingTeamId !== null && currentEditingTeamId !== id) {
+                saveCurrentEditingTeam();
+            }
+            
+            editingTeamId = id;
+            // Enter edit mode for this team (first time)
+            if (currentEditingTeamId === null) {
+                currentEditingTeamId = id;
+                // Capture current sorted order before any edits
+                currentDisplayOrder = sortTeams();
+            } else {
+                currentEditingTeamId = id;
+            }
+            renderLeaderboardNoSort();
         }
 
         function saveTeamName(id) {
@@ -1279,18 +1484,22 @@ tbody td {
                 team.name = newName;
                 editingTeamId = null;
                 showNotification('✅ Team name updated');
-                saveToStorage();
-                renderLeaderboard();
+                renderLeaderboardNoSort();
             }
         }
 
         function cancelEditingName() {
             editingTeamId = null;
-            renderLeaderboard();
+            if (currentEditingTeamId !== null) {
+                // Stay in edit mode but cancel name editing
+                renderLeaderboardNoSort();
+            } else {
+                renderLeaderboard();
+            }
         }
 
         function calculateScore(team) {
-            return (team.load ? 1 : 0) + (team.waveResistance ? 1 : 0) + (team.windResistance ? 1 : 0);
+            return (team.load === 'pass' ? 1 : 0) + (team.waveResistance === 'pass' ? 1 : 0) + (team.windResistance === 'pass' ? 1 : 0);
         }
 
         function sortTeams() {
@@ -1306,6 +1515,131 @@ tbody td {
             });
         }
 
+        function renderLeaderboardNoSort() {
+            // Render without re-sorting (for when changes are made but not saved)
+            const container = document.getElementById('teamsContainer');
+            
+            if (teams.length === 0) {
+                container.innerHTML = '<div class="empty-state">💧 No teams added yet. Add teams above to get started! 💧</div>';
+                currentEditingTeamId = null;
+                return;
+            }
+
+            // Use the preserved display order (don't re-sort during edit)
+            const currentTeams = currentDisplayOrder.length > 0 ? currentDisplayOrder : sortTeams();
+            
+            // Add overlay if in edit mode
+            let overlayHtml = '';
+            if (currentEditingTeamId !== null) {
+                overlayHtml = '<div class="edit-mode-overlay" onclick="handleOverlayClick()"></div>';
+            }
+            
+            let html = overlayHtml + `
+                <div class="teams-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Team Name</th>
+                                <th>Load</th>
+                                <th>Wave Resistance</th>
+                                <th>Wind Resistance</th>
+                                <th>Weight (g)</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            currentTeams.forEach((team, index) => {
+                const rank = index + 1;
+                const score = calculateScore(team);
+                const rankClass = `rank-${rank}`;
+                const rankEmoji = rank === 1 ? '🏆' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
+                
+                // Determine row classes based on edit mode
+                let rowClasses = rank <= 3 ? rankClass : '';
+                if (currentEditingTeamId !== null) {
+                    if (team.id === currentEditingTeamId) {
+                        rowClasses += ' editing';
+                    } else {
+                        rowClasses += ' inactive';
+                    }
+                }
+
+                html += `
+                    <tr class="${rowClasses}">
+                        <td class="rank-cell ${rank <= 3 ? rankClass : ''}">${rankEmoji} ${rank}</td>
+                        <td class="team-name-cell">
+                            ${editingTeamId === team.id ? `
+                                <div class="team-name-edit">
+                                    <input type="text" id="edit-name-${team.id}" value="${team.name}" autofocus>
+                                    <button onclick="saveTeamName(${team.id})">Save</button>
+                                    <button class="btn-cancel" onclick="cancelEditingName()">Cancel</button>
+                                </div>
+                            ` : `
+                                <div class="team-name-display" onclick="startEditingName(${team.id})" title="Click to edit">
+                                    ${team.name}
+                                </div>
+                            `}
+                        </td>
+                        <td class="challenge-cell">
+                            <button class="toggle-btn ${team.load}" 
+                                    onclick="toggleChallenge(${team.id}, 'load')">
+                                ${team.load === 'pass' ? '✓ PASS' : team.load === 'fail' ? '✗ FAIL' : 'PENDING'}
+                            </button>
+                        </td>
+                        <td class="challenge-cell">
+                            <button class="toggle-btn ${team.waveResistance}" 
+                                    onclick="toggleChallenge(${team.id}, 'waveResistance')">
+                                ${team.waveResistance === 'pass' ? '✓ PASS' : team.waveResistance === 'fail' ? '✗ FAIL' : 'PENDING'}
+                            </button>
+                        </td>
+                        <td class="challenge-cell">
+                            <button class="toggle-btn ${team.windResistance}" 
+                                    onclick="toggleChallenge(${team.id}, 'windResistance')">
+                                ${team.windResistance === 'pass' ? '✓ PASS' : team.windResistance === 'fail' ? '✗ FAIL' : 'PENDING'}
+                            </button>
+                        </td>
+                        <td class="challenge-cell">
+                            <input type="number" class="weight-input" value="${team.weight}" 
+                                   onchange="updateWeight(${team.id}, this.value)" 
+                                   min="0" step="0.1" placeholder="0">
+                        </td>
+                        <td class="actions-cell">
+                            ${currentEditingTeamId === team.id ? 
+                                `<button class="save-changes-btn" onmousedown="saveTeamChanges(${team.id}, event)">Save</button>` : 
+                                `<button class="delete-btn" onclick="deleteTeam(${team.id})">Delete</button>`
+                            }
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            container.innerHTML = html;
+
+            if (editingTeamId) {
+                const input = document.getElementById(`edit-name-${editingTeamId}`);
+                if (input) {
+                    input.focus();
+                    input.select();
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            saveTeamName(editingTeamId);
+                        } else if (e.key === 'Escape') {
+                            cancelEditingName();
+                        }
+                    });
+                }
+            }
+        }
+
         function renderLeaderboard() {
             const container = document.getElementById('teamsContainer');
             
@@ -1315,6 +1649,8 @@ tbody td {
             }
 
             const sortedTeams = sortTeams();
+            // Update the current display order when we do a full render
+            currentDisplayOrder = sortedTeams;
             
             let html = `
                 <div class="teams-table">
@@ -1327,7 +1663,7 @@ tbody td {
                                 <th>Wave Resistance</th>
                                 <th>Wind Resistance</th>
                                 <th>Weight (g)</th>
-                                <th>Score</th>
+
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -1357,21 +1693,21 @@ tbody td {
                             `}
                         </td>
                         <td class="challenge-cell">
-                            <button class="toggle-btn ${team.load ? 'pass' : 'fail'}" 
+                            <button class="toggle-btn ${team.load}" 
                                     onclick="toggleChallenge(${team.id}, 'load')">
-                                ${team.load ? '✓ PASS' : '✗ FAIL'}
+                                ${team.load === 'pass' ? '✓ PASS' : team.load === 'fail' ? '✗ FAIL' : 'PENDING'}
                             </button>
                         </td>
                         <td class="challenge-cell">
-                            <button class="toggle-btn ${team.waveResistance ? 'pass' : 'fail'}" 
+                            <button class="toggle-btn ${team.waveResistance}" 
                                     onclick="toggleChallenge(${team.id}, 'waveResistance')">
-                                ${team.waveResistance ? '✓ PASS' : '✗ FAIL'}
+                                ${team.waveResistance === 'pass' ? '✓ PASS' : team.waveResistance === 'fail' ? '✗ FAIL' : 'PENDING'}
                             </button>
                         </td>
                         <td class="challenge-cell">
-                            <button class="toggle-btn ${team.windResistance ? 'pass' : 'fail'}" 
+                            <button class="toggle-btn ${team.windResistance}" 
                                     onclick="toggleChallenge(${team.id}, 'windResistance')">
-                                ${team.windResistance ? '✓ PASS' : '✗ FAIL'}
+                                ${team.windResistance === 'pass' ? '✓ PASS' : team.windResistance === 'fail' ? '✗ FAIL' : 'PENDING'}
                             </button>
                         </td>
                         <td class="challenge-cell">
@@ -1379,9 +1715,12 @@ tbody td {
                                    onchange="updateWeight(${team.id}, this.value)" 
                                    min="0" step="0.1" placeholder="0">
                         </td>
-                        <td class="score-cell">${score}</td>
-                        <td class="challenge-cell">
-                            <button class="delete-btn" onclick="deleteTeam(${team.id})">Delete</button>
+
+                        <td class="actions-cell">
+                            ${currentEditingTeamId === team.id ? 
+                                `<button class="save-changes-btn" onmousedown="saveTeamChanges(${team.id}, event)">Save</button>` : 
+                                `<button class="delete-btn" onclick="deleteTeam(${team.id})">Delete</button>`
+                            }
                         </td>
                     </tr>
                 `;
